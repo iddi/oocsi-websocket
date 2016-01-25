@@ -3,6 +3,7 @@ var OOCSI = (function() {
 	var wsUri = "ws://localhost:9000/";
 	var username;
 	var handlers = {};
+	var calls = {};
 	var websocket;
 	var connected = false;
 	var logger = internalLog;
@@ -42,7 +43,16 @@ var OOCSI = (function() {
 		if(evt.data != 'ping') {
 			try {
 				var e = JSON.parse(evt.data);
-				if(handlers[e.recipient] !== undefined) {
+				if(e.data.hasOwnProperty('_MESSAGE_ID') && calls.hasOwnProperty(e.data['_MESSAGE_ID'])) {
+					var c = calls[e.data['_MESSAGE_ID']];
+
+					if((+new Date) < c.expiration) {
+						delete e.data['_MESSAGE_ID'];
+						c.fn(e.data);
+					}
+
+					delete calls[e.data['_MESSAGE_ID']];
+				} else if(handlers[e.recipient] !== undefined) {
 					handlers[e.recipient](e);
 				} else {
 					logger('no handler for event: ' + evt.data);
@@ -84,6 +94,16 @@ var OOCSI = (function() {
 		connected && submit('sendjson ' + client + ' '+ JSON.stringify(data));
 	} 
 
+	function internalCall(call, data, timeout, fn) {
+		if(connected) {
+			var uuid = guid();
+			calls[uuid] = {expiration: (+new Date) + timeout, fn: fn};
+			data['_MESSAGE_ID'] = uuid;
+			data['_MESSAGE_HANDLE'] = call;
+			submit('sendjson ' + call + ' '+ JSON.stringify(data));
+		}
+	} 
+
 	function internalSubscribe(channel, fn) {
 		if(connected) {
 			submit('subscribe ' + channel);
@@ -96,7 +116,14 @@ var OOCSI = (function() {
 			submit('unsubscribe ' + channel);
 			handlers[channel] = function() {};
 		}
-	} 
+	}
+
+	function guid() {
+		function s4() {
+			return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+		}
+  		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+	}
 
 	return {
 		connect: function(server, clientName, fn) {
@@ -108,6 +135,11 @@ var OOCSI = (function() {
 		send: function(recipient, data) {
 			waitForSocket(function() {
 				internalSend(recipient, data);
+			});
+		},
+		call: function(call, data, timeout, fn) {
+			waitForSocket(function() {
+				internalCall(call, data, timeout, fn);
 			});
 		},
 		subscribe: function(channel, fn) {
