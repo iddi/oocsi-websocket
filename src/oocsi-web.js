@@ -3,6 +3,7 @@ var OOCSI = (function() {
 	var wsUri = "ws://localhost:9000/";
 	var username;
 	var handlers = {};
+	var responders = {};
 	var calls = {};
 	var websocket;
 	var connected = false;
@@ -104,6 +105,17 @@ var OOCSI = (function() {
 		}
 	} 
 
+	function internalRegister(call, fn) {
+		if(connected) {
+			responders[call] = {fn: fn};
+			internalSubscribe(call, function(e) {
+				var response = {'_MESSAGE_ID': e.data['_MESSAGE_ID']};
+				fn(e.data, response);
+				internalSend(e.sender, response);
+			});
+		}
+	}
+
 	function internalSubscribe(channel, fn) {
 		if(connected) {
 			submit('subscribe ' + channel);
@@ -140,6 +152,11 @@ var OOCSI = (function() {
 		call: function(call, data, timeout, fn) {
 			waitForSocket(function() {
 				internalCall(call, data, timeout, fn);
+			});
+		},
+		register: function(call, fn) {
+			waitForSocket(function() {
+				internalRegister(call, fn);
 			});
 		},
 		subscribe: function(channel, fn) {
