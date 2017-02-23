@@ -4,7 +4,7 @@ OOCSI client for Websocket protocol; allows access to OOCSI from HTML, iOS webvi
 
 #How to use#
 
-First, include the JavaScript source (either as the [full library](https://github.com/iddi/oocsi-web/blob/master/public/js/oocsi-web.js) or as the [minified library](https://github.com/iddi/oocsi-web/blob/master/public/js/oocsi-web.min.js)) into the HTML page.
+First, include the JavaScript source (either as the [full library](oocsi-websocket/dist/oocsi-web.js) or as the [minified library](oocsi-websocket/dist/oocsi-web.js)) into the HTML page.
 
 Then connect to an OOCSI server running a websockets adapter:
 
