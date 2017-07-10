@@ -26,7 +26,7 @@ OOCSI.send("John", data);
 You can subscribe to a channel with a handler to handle messages:
 
 ```javascript
-OOCSI.subscribe(“testchannel", function(msg) {
+OOCSI.subscribe("testchannel", function(msg) {
 	// handle message on “test channel"
 	var position = msg.data.position;
 	var color = msg.data.color;
