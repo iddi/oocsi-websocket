@@ -111,9 +111,9 @@
     	// connect to OOCSI server running on IP and port 9000
 		if($('#input').val().length > 0) {
 			username = $('#input').val();
-			OOCSI.connect("ws://" + document.domain + ":9000/", username);
+			OOCSI.connect("ws://" + document.domain + "/ws", username);
 		} else {
-			OOCSI.connect("ws://" + document.domain + ":9000/");
+			OOCSI.connect("ws://" + document.domain + "/ws");
 		}
 
 	    // subscribe to the channel "colorChange"

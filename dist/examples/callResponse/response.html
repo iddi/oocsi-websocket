@@ -26,7 +26,7 @@
 	var $ = jQuery;
 
 
-	OOCSI.connect("ws://" + document.domain + ":9000/");
+	OOCSI.connect("ws://" + document.domain + "/ws");
 
 	// register responder for "addone"
 	OOCSI.register("addone", function(input, response) {     

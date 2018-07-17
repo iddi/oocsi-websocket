@@ -1,6 +1,6 @@
 var OOCSI = (function() {
 
-	var wsUri = "ws://localhost:9000/";
+	var wsUri = "ws://localhost/ws";
 	var username;
 	var handlers = {};
 	var responders = {};
@@ -168,6 +168,32 @@ var OOCSI = (function() {
 			waitForSocket(function() {
 				internalUnsubscribe(channel);
 			});
+		},
+		variable: function(channel, name) {
+			var listeners = [];
+			var value;
+
+			function notify(newValue) {
+				listeners.forEach(function(listener){ listener(newValue); });
+			}
+
+			function accessor(newValue) {
+				if (arguments.length && newValue !== value) {
+				  value = newValue;
+				  notify(newValue);
+
+				  // send new value to OOCSI
+  				  internalSend(channel, {name: value});
+				}
+				return value;
+			}
+
+			accessor.subscribe = function(listener) { listeners.push(listener); };
+
+			// subscribe to OOCSI for getting external updates on value
+			this.subscribe(channel, function(e) { if(e.data.hasOwnProperty(name)) { accessor(e.data[name]) } });
+
+			return accessor;
 		},
 		isConnected: function() {
 			return connected;
