@@ -108,7 +108,7 @@
 	// login and start oocsi
 	function login() {
 
-    	// connect to OOCSI server running on IP and port 9000
+    	// connect to OOCSI server
 		if($('#input').val().length > 0) {
 			username = $('#input').val();
 			OOCSI.connect("ws://" + document.domain + "/ws", username);
