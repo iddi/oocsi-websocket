@@ -1,17 +1,17 @@
 # OOCSI websocket client
 
-This OOCSI client allows access to OOCSI from HTML, iOS webviews and Android webviews via the websocket protocol. 
+This OOCSI client allows access to OOCSI from HTML, iOS web views and Android web views via the websocket protocol. 
 
 # How to use
 
 First, include the JavaScript source (either as the [source library](https://github.com/iddi/oocsi-websocket/blob/master/dist/oocsi-web.js) or as the [minified library](https://github.com/iddi/oocsi-websocket/blob/master/dist/oocsi-web.min.js)) into the HTML page.
 
-Then connect to an OOCSI server (which needs to be running a websockets adapter):
+Then connect to an OOCSI server (which needs to be running a websocket adapter):
 
 ```javascript
-OOCSI.connect("ws://_SERVER_ADDRESS_/");
+OOCSI.connect("ws://_SERVER_ADDRESS_/ws");
 ```
-
+ 
 
 You can send data to a channel or individual client (here: "John"): 
 
