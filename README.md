@@ -9,7 +9,7 @@ First, include the JavaScript source (either as the [source library](https://git
 Then connect to an OOCSI server (which needs to be running a websocket adapter):
 
 ```javascript
-OOCSI.connect("ws://_SERVER_ADDRESS_/ws");
+OOCSI.connect("wss://_SERVER_ADDRESS_/ws");
 ```
  
 
