@@ -6,25 +6,16 @@ var OOCSI = (function() {
 	var responders = {};
 	var calls = {};
 	var websocket;
-	// var connected = false;
 	var logger = internalLog;
 	var error = internalError;
 
 	function init() {
 		logger("CONNECTING to "  + wsUri);
 		websocket = new WebSocket(wsUri);
-		websocket.onopen = function(evt) {
-			onOpen(evt)
-		};
-		websocket.onclose = function(evt) {
-			onClose(evt)
-		};
-		websocket.onmessage = function(evt) {
-			onMessage(evt)
-		};
-		websocket.onerror = function(evt) {
-			onError(evt)
-		};
+		websocket.onopen = onOpen;
+		websocket.onclose = onClose;
+		websocket.onmessage = onMessage;
+		websocket.onerror = onError;
 	}
 
 	function onOpen(evt) {
@@ -139,6 +130,19 @@ var OOCSI = (function() {
 		}
 	}
 
+	function internalReconnect() {
+		if(!internalConnected() && websocket.readyState !== WebSocket.CONNECTING) {
+			logger("RECONNECTING");
+			init();
+			// reconnect subscriptions
+			waitForSocket(function() {
+				for (ch in handlers) {
+					submit('subscribe ' + ch);
+				}
+			});
+		}
+	}
+
 	function guid() {
 		function s4() {
 			return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -150,8 +154,9 @@ var OOCSI = (function() {
 		connect: function(server, clientName, fn) {
 			wsUri = server;
 			username = clientName && clientName.length > 0 ? clientName : "webclient_" + +(new Date());
-			handlers[clientName] = fn;
+			handlers[username] = fn;
 			init();
+			setInterval(internalReconnect, 1000);
 		},
 		send: function(recipient, data) {
 			waitForSocket(function() {
@@ -220,6 +225,81 @@ var OOCSI = (function() {
 		},
 		error: function (fn) {
 			error = fn;
+		},
+		heyOOCSI: function(name) {
+			var device_name = name || username;
+			var data = {}
+			data[device_name] = {}
+			data[device_name]['properties'] = {}
+			data[device_name]['location'] = {}
+			data[device_name]['components'] = {}
+			var components = data[device_name]['components']
+			logger(`Added heyOOCSI device ${device_name}`)
+
+			return {
+		        add_property: function(property, propertyValue) {
+					 data[device_name]['properties'][property] = propertyValue;
+				},
+				add_location: function(location, latitude, longitude) {
+					 data[device_name]['properties'][location] = [latitude, longitude];
+				},
+				add_sensor_brick: function(sensor_name, sensor_channel, sensor_type, sensor_unit, sensor_default, icon) {
+					 components[sensor_name] = {}
+					 components[sensor_name]['channel_name'] = sensor_channel
+					 components[sensor_name]['type'] = 'sensor'
+					 components[sensor_name]['sensor_type'] = sensor_type
+					 components[sensor_name]['unit'] = sensor_unit
+					 components[sensor_name]['value'] = sensor_default
+					 components[sensor_name]['icon'] = icon
+					 logger(`Added ${sensor_name} to the components list for device ${device_name}.`)
+				},
+				add_number_brick: function(number_name, number_channel, number_min_max, number_unit, number_default, icon) {
+					 components[number_name] = {}
+					 components[number_name]['channel_name'] = number_channel
+					 components[number_name]['type'] = 'number'
+					 components[number_name]['min_max'] = number_min_max
+					 components[number_name]['unit'] = number_unit
+					 components[number_name]['value'] = number_default
+					 components[number_name]['icon'] = icon
+					 logger(`Added ${number_name} to the components list for device ${device_name}.`)
+				},
+				add_binary_sensor_brick: function(sensor_name, sensor_channel, sensor_type, sensor_default, icon) {
+					 components[sensor_name] = {}
+					 components[sensor_name]['channel_name'] = sensor_channel
+					 components[sensor_name]['type'] = 'binary_sensor'
+					 components[sensor_name]['sensor_type'] = sensor_type
+					 components[sensor_name]['state'] = sensor_default
+					 components[sensor_name]['icon'] = icon
+					 logger(`Added ${sensor_name} to the components list for device ${device_name}.`)
+				},
+				add_switch_brick: function(switch_name, switch_channel, switch_type, switch_default, icon) {
+					 components[switch_name] = {}
+					 components[switch_name]['channel_name'] = switch_channel
+					 components[switch_name]['type'] = 'switch'
+					 components[switch_name]['sensor_type'] = switch_type
+					 components[switch_name]['state'] = switch_default
+					 components[switch_name]['icon'] = icon
+					 logger(`Added ${switch_name} to the components list for device ${device_name}.`)
+				},
+				add_light_brick: function(light_name, light_channel, led_type, spectrum, mired_min_max, light_default_state, light_default_brightness, icon) {
+					 components[light_name] = {}
+					 components[light_name]['channel_name'] = light_channel
+					 components[light_name]['type'] = 'light'
+					 components[light_name]['ledType'] = led_type
+					 components[light_name]['spectrum'] = spectrum
+					 components[light_name]['min_max'] = mired_min_max
+					 components[light_name]['state'] = light_default_state
+					 components[light_name]['brightness'] = light_default_brightness
+					 components[light_name]['icon'] = icon
+					 logger(`Added ${light_name} to the components list for device ${device_name}.`)
+				},
+				submit: function() {
+					OOCSI.send('heyOOCSI!', data)
+				},
+				sayHi: function() {
+					OOCSI.send('heyOOCSI!', data)
+				}
+			};
 		}
 	};
 

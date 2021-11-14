@@ -3,18 +3,26 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
 
-	<target name="minify-js">
-		<java jar="../lib/yuicompressor-2.4.2.jar" output="../src/oocsi-web.min.js" fork="true">
-			<arg value="../src/oocsi-web.js" />
-		</java>
-	</target>
-	
-	<target name="copySources" depends="minify-js">
+	<target name="copySources">
     	<copy todir="../dist/">
     	    <fileset dir="../src"/>
 		</copy>
     </target>
 
-    <target name="createDistribution" depends="copySources">
+	<target name="minify-js" depends="copySources">
+		<java jar="../lib/closure-compiler.jar" output="../dist/oocsi-web.min.js" fork="true">
+			<arg value="../dist/oocsi-web.js" />
+		</java>
+	</target>
+	
+<!--
+	<target name="minify-js" depends="copySources">
+		<java jar="../lib/yuicompressor-2.4.2.jar" output="../dist/oocsi-web.min.js" fork="true">
+			<arg value="../dist/oocsi-web.js" />
+		</java>
+	</target>
+-->
+	
+    <target name="createDistribution" depends="minify-js">
     </target>
 </project>
