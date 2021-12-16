@@ -230,7 +230,9 @@ var OOCSI = (function() {
 			var device_name = name || username;
 			var data = {}
 			data[device_name] = {}
-			data[device_name]['properties'] = {}
+			data[device_name]['properties'] = {
+				device_id: username
+			}
 			data[device_name]['location'] = {}
 			data[device_name]['components'] = {}
 			var components = data[device_name]['components']
