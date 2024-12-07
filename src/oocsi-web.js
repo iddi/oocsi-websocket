@@ -43,7 +43,7 @@ var OOCSI = (function() {
 
 					delete calls[e.data['_MESSAGE_ID']];
 				} else if(handlers[e.recipient] !== undefined) {
-					handlers[e.recipient](e);
+					handlers[e.recipient].forEach((fn) => {fn(e)});
 				} else {
 					logger('no handler for event: ' + evt.data);
 				}
@@ -119,14 +119,17 @@ var OOCSI = (function() {
 	function internalSubscribe(channel, fn) {
 		if(internalConnected()) {
 			submit('subscribe ' + channel);
-			handlers[channel] = fn;
+			if(handlers[channel] === undefined) {
+				handlers[channel] = [];
+			}
+			handlers[channel].push(fn);
 		} 
 	} 
 
 	function internalUnsubscribe(channel) {
 		if(internalConnected()) {
 			submit('unsubscribe ' + channel);
-			handlers[channel] = function() {};
+			handlers[channel] = [];
 		}
 	}
 
@@ -154,7 +157,7 @@ var OOCSI = (function() {
 		connect: function(server, clientName, fn) {
 			wsUri = server;
 			username = clientName && clientName.length > 0 ? clientName : "webclient_" + +(new Date());
-			handlers[username] = fn;
+			handlers[username] = [fn];
 			init();
 			setInterval(internalReconnect, 1000);
 		},
@@ -197,7 +200,9 @@ var OOCSI = (function() {
 				  notify(newValue);
 
 				  // send new value to OOCSI
-  				  internalSend(channel, {name: value});
+				  let data = {}
+				  data[name] = value
+				  internalSend(channel, data);
 				}
 				return value;
 			}
