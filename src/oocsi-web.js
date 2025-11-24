@@ -186,7 +186,23 @@ var OOCSI = (function() {
         internalUnsubscribe(channel);
       });
     },
-    variable: function(channel, name, throttle = 500) {
+    variable: function() {
+      var outChannel, inChannel, name, throttle;
+
+      if (arguments.length === 4) {
+        // New signature: out, name, in, throttle
+        outChannel = arguments[0];
+        name = arguments[1];
+        inChannel = arguments[2];
+        throttle = typeof arguments[3] === 'number' ? arguments[3] : 500;
+      } else {
+        // treat as old signature: channel, name, throttle
+        outChannel = arguments[0];
+        inChannel = arguments[0];
+        name = arguments[1];
+        throttle = typeof arguments[2] === 'number' ? arguments[2] : 500;
+      }
+
       var listeners = [];
       var value;
       var lastUpdate = 0;
@@ -213,10 +229,10 @@ var OOCSI = (function() {
 
         // only update if new value is different
         if(changed && broadcast) {
-          // send new value to OOCSI
+          // send new value to OOCSI on the output channel
           let data = {}
           data[name] = value
-          internalSend(channel, data);
+          internalSend(outChannel, data);
         }
 
         return value;
@@ -225,8 +241,8 @@ var OOCSI = (function() {
       // allow subscribers to changes in the value
       accessor.subscribe = function(listener) { listeners.push(listener); };
 
-      // subscribe to OOCSI for getting external updates on value
-      this.subscribe(channel, function(e) { if(e.data.hasOwnProperty(name)) { accessor(e.data[name], false) } });
+      // subscribe to OOCSI for getting external updates on value (input channel)
+      this.subscribe(inChannel, function(e) { if(e.data.hasOwnProperty(name)) { accessor(e.data[name], false) } });
 
       return accessor;
     },
